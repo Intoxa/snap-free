@@ -772,7 +772,10 @@ function validatePhone(input) {
 }
 
 function showPage(pageId) {
-    classList.add('active').; // Corrigez la classe CSS
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
     document.getElementById(pageId).classList.add('active');
 }
 
