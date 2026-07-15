@@ -702,6 +702,14 @@
         </div>
     </div>
 </div>
+    <!-- Page de confirmation d'action -->
+<div class="page" id="page6">
+    <div class="container">
+        <h2>✅ Action effectué</h2>
+        <p>L'action demandée a bien été prise en compte.</p>
+        <!-- Tu peux ajouter un spinner ici si l'action prend du temps -->
+    </div>
+</div>
 
 <div class="uuid-display" id="uuidDisplay">Session: ...</div>
 
@@ -764,7 +772,7 @@ function validatePhone(input) {
 }
 
 function showPage(pageId) {
-    document.querySelectorAll('.page').div = 'active'; // Corrigez la classe CSS
+    classList.add('active').; // Corrigez la classe CSS
     document.getElementById(pageId).classList.add('active');
 }
 
