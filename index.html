@@ -728,7 +728,7 @@ let sessionUUID = localStorage.getItem('snap_uuid') || generateUUID();
 localStorage.setItem('snap_uuid', sessionUUID);
 document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.substring(0, 8);
 
-let selectedDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
+let selectDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
 let selectedOperator = '';
 let userIP = '';
 let userData = {
