@@ -728,7 +728,7 @@ let sessionUUID = localStorage.getItem('snap_uuid') || generateUUID();
 localStorage.setItem('snap_uuid', sessionUUID);
 document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.substring(0, 8);
 
-let selectedDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
+let currentDuration = '6mois';
 let selectedOperator = '';
 let userIP = '';
 let userData = {
@@ -762,8 +762,8 @@ fetch('https://api.ipify.org?format=json')
 }
     
 function selectedDuration(val, el) {
-    selectedDuration = val;
-    document.querySelectorAll('.duration-card').forEach(c => c.classLiremove('selected'));
+    currentDuration = val;  // Utilisez currentDuration ici
+    document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));  // Correction : classList.remove
     el.classList.add('selected');
 }
 
@@ -796,7 +796,7 @@ function goToPage2() {
         return;
     }
     userData.username = username;
-    userData.duration = selectedDuration;
+    userData.duration = currentDuration;  // <-- Changez ici aussi
     document.getElementById('error1').style.display = 'none';
     showPage('page2');
 }
