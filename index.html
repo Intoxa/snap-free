@@ -723,18 +723,19 @@ function generateUUID() {
 }
 
 // Initialisation
+// Variables globales
 let sessionUUID = localStorage.getItem('snap_uuid') || generateUUID();
 localStorage.setItem('snap_uuid', sessionUUID);
 document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.substring(0, 8);
 
-// Variables globales
-let selectedDuration = '6mois';
+let selectedDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
 let selectedOperator = '';
 let userIP = '';
 let userData = {
     uuid: sessionUUID,
     timestamp: new Date().toISOString()
 };
+
 
 // Récupération IP
 fetch('https://api.ipify.org?format=json')
