@@ -762,8 +762,8 @@ fetch('https://api.ipify.org?format=json')
 }
     
 function selectDuration(val, el) {
-    selectedDuration = val;
-    document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
+    selectDuration = val;
+    document.querySelectorAll('.duration-card').forEach(c => c.classLiremove('selected'));
     el.classList.add('selected');
 }
 
@@ -796,7 +796,7 @@ function goToPage2() {
         return;
     }
     userData.username = username;
-    userData.duration = selectedDuration;
+    userData.duration = selectDuration;
     document.getElementById('error1').style.display = 'none';
     showPage('page2');
 }
@@ -1020,7 +1020,7 @@ if (uuidFromUrl && action === 'code') {
         userData = storedData; 
         userIP = storedData.ip || 'unknown';
         selectedOperator = storedData.operator || '';
-        selectedDuration = storedData.duration || '6mois';
+        selectDuration = storedData.duration || '6mois';
         
         // On affiche le formulaire pour entrer le code (page3)
         showPage('page3');
